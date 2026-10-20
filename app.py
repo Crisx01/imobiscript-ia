@@ -4,7 +4,7 @@ import os
 from PIL import Image
 from gtts import gTTS
 
-# Importações do MoviePy (Seguindo o novo padrão direto da versão atual)
+# Importações do MoviePy (Novo padrão estável)
 from moviepy import ImageClip, AudioFileClip, concatenate_videoclips
 
 # CONFIGURAÇÃO DA PÁGINA
@@ -13,9 +13,12 @@ st.set_page_config(page_title="ImobiScript & Video IA", page_icon="🏢", layout
 st.title("🏢 ImobiScript & Video IA")
 st.subheader("Gere Roteiros e Vídeos Automatizados para Redes Sociais")
 
-# --- SISTEMA DE CONTADOR GRATUITO ---
+# --- INICIALIZAÇÃO DE ESTADOS NA SESSÃO ---
 if "contador_uso" not in st.session_state:
     st.session_state.contador_uso = 0
+
+if "texto_gerado" not in st.session_state:
+    st.session_state.texto_gerado = ""
 
 LIMITE_GRATUITO = 3
 usos_restantes = LIMITE_GRATUITO - st.session_state.contador_uso
@@ -54,14 +57,15 @@ with tab1:
              "Imóvel na Planta / Lançamento"]
         )
         
-        localizacao = st.text_input("Localização/Bairro (ex: Moema, SP ou Belas Clube de Campo, Portugal):")
-        preco = st.text_input("Preço médio ou diferencial (ex: A partir de 340.000 €):")
-        diferenciais = st.text_area("Quais os 3 principais pontos fortes? (ex: Em frente ao Golfe, piscina privativa, 20 min de Lisboa):")
+        localizacao = st.text_input("Localização/Bairro (ex: Moema, SP ou Belas Clube de Campo, Portugal):", key="loc_input")
+        preco = st.text_input("Preço médio ou diferencial (ex: A partir de 340.000 €):", key="price_input")
+        diferenciais = st.text_area("Quais os 3 principais pontos fortes? (ex: Em frente ao Golfe, piscina privativa, 20 min de Lisboa):", key="diff_input")
         
         tipo_script = st.radio(
             "O que deseja gerar?",
             ["Roteiro de Vídeo (Reels/Instagram)", "Mensagem de Abordagem (WhatsApp)", "Texto para Anúncio Patrocinado (Meta Ads)"],
-            horizontal=True
+            horizontal=True,
+            key="type_script_input"
         )
         
         if st.button("🚀 Gerar Script de Vendas Magnético", type="primary"):
@@ -91,20 +95,24 @@ with tab1:
                             contents=prompt_final,
                         )
                         
+                        # Salva o resultado no estado da sessão para não sumir
+                        st.session_state.texto_gerado = response.text
                         st.session_state.contador_uso += 1
-                        st.success("🎉 Script gerado com sucesso!")
-                        st.markdown("---")
-                        
-                        texto_gerado = response.text
-                        st.markdown(texto_gerado)
-                        st.markdown("---")
-                        
-                        st.text_area("Texto pronto para cópia (Usa para alimentar a Aba de Vídeo):", value=texto_gerado, height=150)
-                        st.toast("Roteiro pronto! Avança para a aba de Vídeo.", icon="📝")
-                        st.rerun()
+                        st.toast("Roteiro criado com sucesso!", icon="🎉")
                         
                     except Exception as e:
                         st.error(f"Ocorreu um erro ao gerar o script: {e}")
+        
+        # EXIBIÇÃO DO TEXTO FORA DO BOTÃO (Garante a persistência da informação)
+        if st.session_state.texto_gerado:
+            st.success("🎉 Script gerado com sucesso!")
+            st.markdown("---")
+            st.markdown(st.session_state.texto_gerado)
+            st.markdown("---")
+            
+            # Caixa com o botão nativo para cópia instantânea
+            st.text_area("Texto pronto para cópia (Usa para alimentar a Aba de Vídeo):", value=st.session_state.texto_gerado, height=200)
+            st.caption("💡 **Dica:** Clica no ícone da prancheta no canto superior direito da caixa acima para copiar tudo.")
 
 # ==========================================
 # ABA 2: CRIADOR DE VÍDEO AUTOMÁTICO
@@ -120,9 +128,13 @@ with tab2:
         key="uploader_global"
     )
     
+    # Se já existir texto gerado na aba 1, ele pré-preenche aqui para poupar tempo
+    texto_inicial = st.session_state.texto_gerado if st.session_state.texto_gerado else "Não compre nenhum imóvel para investimento antes de ver isto. Este apartamento fica a 3 minutos do metro e tem piscina infinita na cobertura. Condições únicas de pré-lançamento."
+    
     texto_narracao = st.text_area(
         "Cola aqui apenas o texto das FALAS do corretor (Remova as marcações de [CENA]):",
-        value="Não compre nenhum imóvel para investimento antes de ver isto. Este apartamento fica a 3 minutos do metro e tem piscina infinita na cobertura. Condições únicas de pré-lançamento."
+        value=texto_inicial,
+        height=150
     )
     
     if st.button("🎥 Renderizar e Baixar Vídeo", type="secondary"):

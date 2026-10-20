@@ -9,14 +9,24 @@ st.title("🏢 ImobiScript IA")
 st.subheader("Gerador de Scripts de Venda de Alta Conversão para Corretores")
 st.write("Crie copys perfeitas para seus imóveis sem precisar pensar em prompts complexos.")
 
+# --- SISTEMA DE CONTADOR GRATUITO ---
+if "contador_uso" not in st.session_state:
+    st.session_state.contador_uso = 0
+
+LIMITE_GRATUITO = 3
+usos_restantes = LIMITE_GRATUITO - st.session_state.contador_uso
+
 # --- BARRA LATERAL COMERCIAL ---
 with st.sidebar:
-    st.header("👑 Conta Premium")
-    st.success("Acesso Vitalício Ativado")
+    st.header("👑 Estatuto da Conta")
+    if usos_restantes > 0:
+        st.warning(f"Versão de Teste: {usos_restantes} créditos restantes.")
+    else:
+        st.error("❌ Créditos esgotados!")
     st.markdown("---")
     st.markdown("""
     ### 🚀 Como funciona?
-    A nossa IA está conectada diretamente ao banco de dados do mercado imobiliário para gerar as melhores copys do mercado.
+    A nossa IA está conectada diretamente ao mercado imobiliário para gerar as melhores copys do mercado.
     """)
 
 # --- FORMULÁRIO DE ENTRADA DO CORRETOR ---
@@ -40,55 +50,71 @@ tipo_script = st.radio(
     horizontal=True
 )
 
-# --- LÓGICA DE GERAÇÃO ---
-if st.button("🚀 Gerar Script de Vendas Magnético", type="primary"):
-    if not localizacao or not diferenciais:
-        st.warning("Por favor, preencha a localização e os diferenciais do imóvel.")
-    else:
-        with st.spinner("A IA está analisando o mercado e criando seu script..."):
-            try:
-                # BUSCA A CHAVE AUTOMATICAMENTE DOS SECRETS DE FORMA OCULTA E SEGURA
-                api_key_segura = st.secrets["GEMINI_API_KEY"]
-                
-                # Inicializa o cliente oficial
-                client = genai.Client(api_key=api_key_segura)
-                
-                # Engenharia de Prompt especializada
-                prompt_base = f"""
-                Você é um Copywriter de elite especializado no mercado imobiliário e gatilhos mentais de escassez e exclusividade.
-                Gere um material focado no seguinte imóvel:
-                - Tipo: {tipo_imovel}
-                - Localização: {localizacao}
-                - Preço/Condição: {preco}
-                - Diferenciais: {diferenciais}
-                
-                Instruções específicas para o formato:
-                """
-                
-                if tipo_script == "Roteiro de Vídeo (Reels/Instagram)":
-                    prompt_final = prompt_base + "Crie um roteiro de vídeo dinâmico de até 60 segundos. Divida rigorosamente em colunas ou blocos de: [CENA/O QUE MOSTRAR] e [ÁUDIO/FALA DO CORRETOR]. Comece com um GANCHO FORTE de 3 segundos e termine com CTA para comentar."
-                elif tipo_script == "Mensagem de Abordagem (WhatsApp)":
-                    prompt_final = prompt_base + "Crie uma mensagem direta, profissional, altamente persuasiva para WhatsApp com emojis. Termine com uma pergunta aberta."
-                else:
-                    prompt_final = prompt_base + "Crie um texto de anúncio completo (Copy para legenda). Inclua Título, Corpo focado em estilo de vida e CTA 'Clique em Saiba Mais'."
-                
-                # Executa a chamada usando a geração estável atual
-                response = client.models.generate_content(
-                    model='gemini-3.8-flash',
-                    contents=prompt_final,
-                )
-                
-                # Exibe o resultado de forma elegante
-                st.success("🎉 Script gerado com sucesso!")
-                st.markdown("---")
-                
-                texto_gerado = response.text
-                st.markdown(texto_gerado)
-                st.markdown("---")
-                
-                # Componente de cópia com um clique
-                st.text_area("Texto pronto para cópia:", value=texto_gerado, height=150)
-                st.toast("Script pronto para uso!", icon="📝")
-                
-            except Exception as e:
-                st.error(f"Ocorreu um erro ao gerar o script: {e}")
+# --- LÓGICA DE VERIFICAÇÃO E GERAÇÃO ---
+if usos_restantes <= 0:
+    st.error("⚠️ **Limite de teste atingido!**")
+    st.markdown("""
+    Para continuar a gerar scripts ilimitados para os teus imóveis e vender muito mais rápido, ativa a tua **Conta Premium**.
+    
+    * **Plano Mensal Ilimitado:** Apenas 19€/mês
+    
+    👉 **Para ativar agora:** Envia uma mensagem para o desenvolvedor no Instagram ou WhatsApp solicitando o acesso Premium via MB WAY!
+    """)
+else:
+    if st.button("🚀 Gerar Script de Vendas Magnético", type="primary"):
+        if not localizacao or not diferenciais:
+            st.warning("Por favor, preencha a localização e os diferenciais do imóvel.")
+        else:
+            with st.spinner("A IA está analisando o mercado e criando seu script..."):
+                try:
+                    # BUSCA A CHAVE AUTOMATICAMENTE DOS SECRETS DE FORMA OCULTA E SEGURA
+                    api_key_segura = st.secrets["GEMINI_API_KEY"]
+                    
+                    # Inicializa o cliente oficial
+                    client = genai.Client(api_key=api_key_segura)
+                    
+                    # Engenharia de Prompt especializada
+                    prompt_base = f"""
+                    Você é um Copywriter de elite especializado no mercado imobiliário e gatilhos mentais de escassez e exclusividade.
+                    Gere um material focado no seguinte imóvel:
+                    - Tipo: {tipo_imovel}
+                    - Localização: {localizacao}
+                    - Preço/Condição: {preco}
+                    - Diferenciais: {diferenciais}
+                    
+                    Instruções específicas para o formato:
+                    """
+                    
+                    if tipo_script == "Roteiro de Vídeo (Reels/Instagram)":
+                        prompt_final = prompt_base + "Crie um roteiro de vídeo dinâmico de até 60 segundos. Divida rigorosamente em colunas ou blocos de: [CENA/O QUE MOSTRAR] e [ÁUDIO/FALA DO CORRETOR]. Comece com um GANCHO FORTE de 3 segundos e termine com CTA para comentar."
+                    elif tipo_script == "Mensagem de Abordagem (WhatsApp)":
+                        prompt_final = prompt_base + "Crie uma mensagem direta, profissional, altamente persuasiva para WhatsApp com emojis. Termine com uma pergunta aberta."
+                    else:
+                        prompt_final = prompt_base + "Crie um texto de anúncio completo (Copy para legenda). Inclua Título, Corpo focado em estilo de vida e CTA 'Clique em Saiba Mais'."
+                    
+                    # Executa a chamada usando a geração estável atual
+                    response = client.models.generate_content(
+                        model='gemini-3.8-flash',
+                        contents=prompt_final,
+                    )
+                    
+                    # COMPUTAR USO COM SUCESSO
+                    st.session_state.contador_uso += 1
+                    
+                    # Exibe o resultado de forma elegante
+                    st.success("🎉 Script generada com sucesso!")
+                    st.markdown("---")
+                    
+                    texto_gerado = response.text
+                    st.markdown(texto_gerado)
+                    st.markdown("---")
+                    
+                    # Componente de cópia com um clique
+                    st.text_area("Texto pronto para cópia:", value=texto_gerado, height=150)
+                    st.toast(f"Script pronto! Restam {LIMITE_GRATUITO - st.session_state.contador_uso} créditos de teste.", icon="📝")
+                    
+                    # Recarrega a página para atualizar o contador da barra lateral
+                    st.rerun()
+                    
+                except Exception as e:
+                    st.error(f"Ocorreu um erro ao gerar o script: {e}")

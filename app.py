@@ -4,7 +4,7 @@ import os
 from PIL import Image
 from gtts import gTTS
 
-# Importações do MoviePy (Novo padrão estável)
+# Importações do MoviePy (Novo padrão estável da versão 2.0+)
 from moviepy import ImageClip, AudioFileClip, concatenate_videoclips
 
 # CONFIGURAÇÃO DA PÁGINA
@@ -105,7 +105,7 @@ with tab1:
         
         # EXIBIÇÃO DO TEXTO FORA DO BOTÃO (Garante a persistência da informação)
         if st.session_state.texto_gerado:
-            st.success("🎉 Script gerado com sucesso!")
+            st.success("🎉 Script generated com sucesso!")
             st.markdown("---")
             st.markdown(st.session_state.texto_gerado)
             st.markdown("---")
@@ -164,7 +164,8 @@ with tab2:
                         caminho_temp = f"temp_img/foto_{i}.jpg"
                         img_redimensionada.save(caminho_temp)
                         
-                        clip = ImageClip(caminho_temp).set_duration(duracao_por_foto)
+                        # CORREÇÃO EFETUADA AQUI: Mudança de set_duration para with_duration (MoviePy v2+)
+                        clip = ImageClip(caminho_temp).with_duration(duracao_por_foto)
                         clips_de_imagem.append(clip)
                     
                     video_final = concatenate_videoclips(clips_de_imagem, method="compose")

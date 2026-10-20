@@ -169,7 +169,8 @@ with tab2:
                         clips_de_imagem.append(clip)
                     
                     video_final = concatenate_videoclips(clips_de_imagem, method="compose")
-                    video_final = video_final.set_audio(audio_clip)
+                    video_final = video_final.with_audio(audio_clip)
+
                     
                     nome_video_saida = "reels_final_imovel.mp4"
                     video_final.write_videofile(nome_video_saida, fps=24, codec="libx264", audio_codec="aac")
